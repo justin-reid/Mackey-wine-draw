@@ -76,3 +76,55 @@ export function createInitialDemoPlayers() {
     eliminatedDate: row.out ? dateForDay[row.out] : "",
   }));
 }
+
+/**
+ * Full-scale demo dataset: 37 teams x 7 players (259 total) across 3 draw days.
+ * Activated via ?roster=37 on any page.
+ */
+export function createLargeDemoPlayers() {
+  const dateForDay = { 1: localIsoDaysAgo(3), 2: localIsoDaysAgo(2), 3: localIsoDaysAgo(1) };
+  const teams = [
+    "Bordeaux Bells", "Cabernet Carolers", "Mistletoe Merlots", "Fireside Pinot", "Snowfall Sauvignon",
+    "Holly & Shiraz", "Champagne Sleigh", "Cellar Noel", "Rioja Reindeer", "Merlot Mistletoe",
+    "Syrah Santa", "Gingerbread Gamay", "Port Partridge", "Chardonnay Christmas", "Frosty Fizz",
+    "Shiraz Sleigh", "Noel Nebbiolo", "Tinsel Tempranillo", "Mulled Malbec", "Eggnog Ros\u00e9",
+    "Pinot Pine", "Vintage Yule", "Festive Ferment", "Gl\u00fchwein Gang", "Cork & Candle",
+    "Bubbly Bells", "Wassail Wines", "Nog Nation", "Carol Cellar", "Wreath & Vine",
+    "Oak Ornament", "Dram Dasher", "Stocking Stash", "Corkscrew Carolers", "Claret Claus",
+    "Ruby Ribbon", "Last Cork Standing",
+  ];
+  const firstNames = [
+    "Margaret", "Arthur", "Evelyn", "Graham", "Patricia", "Richard", "Barbara", "Thomas",
+    "Susan", "Robert", "Carol", "Kenneth", "Diane", "William", "Nancy", "Edward",
+    "Helen", "Charles", "Dorothy", "George", "Linda", "Donald", "Sharon", "Paul",
+    "Karen", "David", "Betty", "Frank", "Judith", "Raymond", "Sandra", "Walter",
+    "Gordon", "Marlene", "Christopher", "Alexandra", "Bruce",
+  ];
+  const lastNames = [
+    "Mackey", "Pendelton", "Brooks", "Whitaker", "Holloway", "Caldwell", "Sinclair", "Lindholm",
+    "Gallagher", "Thornton", "Hendricks", "Marlow", "Mercer", "Halstead", "Pritchard", "Kowalski",
+    "MacAllister", "Beaumont", "Callahan", "Ellison", "Fitzpatrick", "McAllister", "Alvarez", "Donovan",
+    "O'Sullivan", "Reynolds", "Zimmerman", "Pellegrini", "Armstrong", "Foster", "Delgado", "Bennett",
+    "Hale", "Fenwick",
+  ];
+
+  const rows = [];
+  let n = 0;
+  for (let t = 0; t < teams.length; t++) {
+    const team = teams[t];
+    for (let p = 0; p < 7; p++) {
+      n++;
+      const name = `${firstNames[(n * 7) % firstNames.length]} ${lastNames[(n * 11 + t) % lastNames.length]}`;
+      const bucket = (n * 13 + t * 5) % 10;
+      const out = (t === 0 || t % 9 === 4 || bucket < 4) ? ((n + t) % 3) + 1 : 0;
+      rows.push({
+        id: n,
+        ticket: n,
+        team,
+        name,
+        eliminatedDate: out ? dateForDay[out] : "",
+      });
+    }
+  }
+  return rows;
+}

@@ -8,10 +8,11 @@
  *  - Demo mode (API_URL empty): the same data kept in this browser's localStorage.
  */
 
-import { createInitialDemoPlayers } from "./demo-data.js";
+import { createInitialDemoPlayers, createLargeDemoPlayers } from "./demo-data.js";
 import { shortDayLabel, todayIsoDate } from "./ui-helpers.js";
 
 const DEMO_STORAGE_KEY = "mackey_wine_draw_demo_v2";
+const DEMO_LARGE_STORAGE_KEY = "mackey_wine_draw_demo_37_v2";
 const OVERRIDE_URL_KEY = "mackey_wine_draw_api_override";
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -167,9 +168,25 @@ export function buildBoardFromPlayers(rawPlayers, updatedAt = new Date().toISOSt
 /* ==========================================================================
    Demo store (localStorage)
    ========================================================================== */
+function isLargeDemoRoster() {
+  try {
+    return typeof window !== "undefined" && new URLSearchParams(window.location.search).get("roster") === "37";
+  } catch {
+    return false;
+  }
+}
+
+function activeDemoKey() {
+  return isLargeDemoRoster() ? DEMO_LARGE_STORAGE_KEY : DEMO_STORAGE_KEY;
+}
+
+function seedDemoPlayers() {
+  return isLargeDemoRoster() ? createLargeDemoPlayers() : createInitialDemoPlayers();
+}
+
 function loadDemoPlayers() {
   try {
-    const raw = localStorage.getItem(DEMO_STORAGE_KEY);
+    const raw = localStorage.getItem(activeDemoKey());
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -177,21 +194,21 @@ function loadDemoPlayers() {
   } catch {
     // fall through to seed
   }
-  const initial = createInitialDemoPlayers();
+  const initial = seedDemoPlayers();
   saveDemoPlayers(initial);
   return initial;
 }
 
 function saveDemoPlayers(players) {
   try {
-    localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(players));
+    localStorage.setItem(activeDemoKey(), JSON.stringify(players));
   } catch {
     // ignore quota issues
   }
 }
 
 export function resetDemoData() {
-  const initial = createInitialDemoPlayers();
+  const initial = seedDemoPlayers();
   saveDemoPlayers(initial);
   return buildBoardFromPlayers(initial);
 }
