@@ -163,6 +163,15 @@ async function getPageWs() {
     await evaluate(`document.querySelector('[data-filter="all"]').click()`);
     step("status filter works");
 
+    // Party Info modal
+    await evaluate(`document.getElementById('open-party-nav').click()`);
+    await waitFor("!document.getElementById('party-modal').hidden", "party info modal open");
+    const partyLink = await evaluate(`document.querySelector('#party-modal a[href*="mackeywinedraw.ca"]').href`);
+    assert.ok(partyLink.includes("mackeywinedraw.ca"), "party modal links to mackeywinedraw.ca");
+    await evaluate(`document.getElementById('party-modal-close').click()`);
+    assert.strictEqual(await evaluate(`document.getElementById('party-modal').hidden`), true, "party modal closes");
+    step("party info modal displays venue, schedule, and mackeywinedraw.ca link");
+
     // History modal
     await evaluate(`document.getElementById('open-history-nav').click()`);
     await waitFor("!document.getElementById('history-modal').hidden", "history modal open");
@@ -212,6 +221,18 @@ async function getPageWs() {
     assert.strictEqual(latestDrawChips, 3, "latest draw spotlight shows the 3 new names");
     step("public board updated: 17 out, latest-draw spotlight shows 3 names");
     await shot("03-board-after-draw");
+
+    /* ---------- Projector view (1280x720) ---------- */
+    await send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 720, deviceScaleFactor: 1, mobile: false });
+    await navigate(BASE + "/projector.html");
+    await waitFor("document.querySelectorAll('.proj-team').length === 8", "projector shows all 8 teams");
+    const projOverflow = await evaluate(`document.documentElement.scrollWidth > window.innerWidth`);
+    assert.strictEqual(projOverflow, false, "projector has no horizontal overflow");
+    await shot("07-projector");
+    await evaluate(`document.getElementById('proj-active-toggle').click()`);
+    const activeProjCount = await evaluate(`document.querySelectorAll('.proj-team').length`);
+    assert.ok(activeProjCount >= 1 && activeProjCount < 8, "projector Active Only filters out eliminated teams");
+    step("projector view displays all teams full-screen and Active Only filter works");
 
     /* ---------- Undo ---------- */
     await navigate(BASE + "/admin.html");

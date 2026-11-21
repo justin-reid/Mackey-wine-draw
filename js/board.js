@@ -34,6 +34,9 @@ function cacheElements() {
   els.historyBody = document.getElementById("history-modal-body");
   els.historyClose = document.getElementById("history-modal-close");
   els.openHistoryNav = document.getElementById("open-history-nav");
+  els.partyModal = document.getElementById("party-modal");
+  els.partyClose = document.getElementById("party-modal-close");
+  els.openPartyNav = document.getElementById("open-party-nav");
   els.refreshBtn = document.getElementById("refresh-btn");
   els.lastUpdated = document.getElementById("last-updated");
   els.footerEventName = document.getElementById("footer-event-name");
@@ -384,6 +387,17 @@ function closeHistoryModal() {
   els.historyModal.hidden = true;
 }
 
+function openPartyModal() {
+  if (!els.partyModal) return;
+  els.partyModal.hidden = false;
+  els.partyClose?.focus();
+}
+
+function closePartyModal() {
+  if (!els.partyModal) return;
+  els.partyModal.hidden = true;
+}
+
 function updateFilterButtons() {
   els.filterButtons.forEach((btn) => {
     btn.setAttribute("aria-pressed", btn.dataset.filter === state.filter ? "true" : "false");
@@ -437,6 +451,11 @@ function bindEvents() {
     renderBoard();
   });
 
+  els.openPartyNav?.addEventListener("click", (e) => {
+    e.preventDefault();
+    openPartyModal();
+  });
+
   els.openHistoryNav?.addEventListener("click", (e) => {
     e.preventDefault();
     openHistoryModal();
@@ -444,13 +463,19 @@ function bindEvents() {
 
   els.refreshBtn?.addEventListener("click", () => loadBoard(false));
 
+  els.partyClose?.addEventListener("click", closePartyModal);
+  els.partyModal?.addEventListener("click", (e) => {
+    if (e.target === els.partyModal) closePartyModal();
+  });
+
   els.historyClose?.addEventListener("click", closeHistoryModal);
   els.historyModal?.addEventListener("click", (e) => {
     if (e.target === els.historyModal) closeHistoryModal();
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !els.historyModal.hidden) {
-      closeHistoryModal();
+    if (e.key === "Escape") {
+      if (!els.historyModal.hidden) closeHistoryModal();
+      if (els.partyModal && !els.partyModal.hidden) closePartyModal();
     }
   });
 

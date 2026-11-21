@@ -40,9 +40,13 @@
           Annual Holiday Cellar Elimination &mdash; Last name standing takes home the wine
         </p>
         <nav class="hero-nav no-print" aria-label="Primary">
+          <button type="button" class="hero-pill-link" id="open-party-nav">
+            Party Info
+          </button>
           <button type="button" class="hero-pill-link" id="open-history-nav">
             Draw History
           </button>
+          <a href="./projector.html" class="hero-pill-link">Projector View</a>
           <button type="button" class="hero-pill-link" id="refresh-btn">
             Refresh Standings
           </button>
@@ -131,6 +135,10 @@
           <span id="last-updated" style="margin-left: 0.75rem; color: var(--ink-muted);"></span>
         </div>
         <div class="footer-links">
+          <a href="./projector.html">Projector View</a>
+          <a href="https://www.mackeywinedraw.ca/" target="_blank" rel="noopener noreferrer">
+            mackeywinedraw.ca
+          </a>
           <a href="./admin.html">Admin Draw Console</a>
         </div>
       </div>
@@ -158,6 +166,77 @@
           </button>
         </div>
         <div id="history-modal-body"></div>
+      </div>
+    </div>
+
+    <!-- Party Info Modal -->
+    <div
+      id="party-modal"
+      class="modal-backdrop no-print"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="party-modal-title"
+      hidden
+    >
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 class="modal-title" id="party-modal-title">2026 Party &amp; Draw Info</h2>
+          <button
+            type="button"
+            id="party-modal-close"
+            class="modal-close"
+            aria-label="Close party info"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="party-modal-body">
+          <div class="party-callout">
+            <div class="party-callout-date">Saturday, November 28, 2026 &middot; 6:00 PM</div>
+            <div class="party-callout-venue">Sirocco Golf Club</div>
+            <div class="party-callout-address">210178 64 St W, Foothills County, AB</div>
+          </div>
+
+          <div class="party-section">
+            <h3>Evening Schedule</h3>
+            <ul class="party-schedule">
+              <li><span>6:00 PM</span> Party Starts</li>
+              <li><span>7:00 PM</span> Wine Draw Begins</li>
+              <li><span>9:00 PM</span> Kitchen Closes</li>
+              <li><span>11:00 PM</span> Winner Announced</li>
+              <li><span>1:00 AM</span> Bar Closes</li>
+            </ul>
+          </div>
+
+          <div class="party-section">
+            <h3>How the Draw Works</h3>
+            <ul>
+              <li>Each participant ($30 entry) is randomly placed on a team.</li>
+              <li>Daily eliminations run Nov 21&ndash;27 (~50% drawn before party night), with the remaining names drawn live at the party until one name remains.</li>
+              <li>As long as someone on your team is still in, you're still in &mdash; the winning team splits all the wine equally.</li>
+            </ul>
+          </div>
+
+          <div class="party-section">
+            <h3>Calgary Food Bank Fundraiser</h3>
+            <p>
+              About 25% of every entry goes to The Calgary Food Bank and 75% buys wine (over
+              $2,500 raised in 2025). A non-perishable food hamper and cash donation box will be at
+              the party, and the runner-up receives the donation tax receipt.
+            </p>
+          </div>
+
+          <div class="party-modal-actions">
+            <a
+              href="https://www.mackeywinedraw.ca/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-primary"
+            >
+              Visit mackeywinedraw.ca &nearr;
+            </a>
+          </div>
+        </div>
       </div>
     </div>
 
