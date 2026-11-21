@@ -18,9 +18,28 @@ export function formatShortDate(isoOrDate) {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+function parseLocalTimestamp(value) {
+  const s = String(value || "").trim();
+  const dt = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?$/.exec(s);
+  if (dt) {
+    return {
+      date: new Date(Number(dt[1]), Number(dt[2]) - 1, Number(dt[3]), Number(dt[4]), Number(dt[5]), Number(dt[6] || 0)),
+      hasTime: true,
+    };
+  }
+  const d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (d) {
+    return {
+      date: new Date(Number(d[1]), Number(d[2]) - 1, Number(d[3])),
+      hasTime: false,
+    };
+  }
+  return null;
+}
+
 export function formatDateTime(isoOrDate) {
   if (!isoOrDate) return "";
-  if (typeof isoOrDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(isoOrDate)) {
+  if (typeof isoOrDate === "string" && parseLocalTimestamp(isoOrDate)) {
     return shortDayLabel(isoOrDate);
   }
   const d = typeof isoOrDate === "string" ? new Date(isoOrDate) : isoOrDate;
@@ -33,18 +52,41 @@ export function formatDateTime(isoOrDate) {
   });
 }
 
-/** "2026-12-14" -> "Dec 14" (built from local parts so no timezone shift). */
-export function shortDayLabel(isoDate) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(isoDate || ""));
-  if (!m) return String(isoDate || "");
-  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+/** "2026-12-14" -> "Dec 14"; "2026-11-28 19:30" -> "Nov 28, 7:30 PM" (local parts, no timezone shift). */
+export function shortDayLabel(isoTimestamp) {
+  const parsed = parseLocalTimestamp(isoTimestamp);
+  if (!parsed) return String(isoTimestamp || "");
+  if (!parsed.hasTime) {
+    return parsed.date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  }
+  return parsed.date.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
-/** Today's local date as yyyy-mm-dd, for <input type="date"> and the Sheet. */
+function pad2(n) {
+  return String(n).padStart(2, "0");
+}
+
+/** Today's local date as yyyy-mm-dd. */
 export function todayIsoDate() {
   const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+/** Current local timestamp as yyyy-mm-dd HH:mm:ss. */
+export function nowTimestamp() {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+}
+
+/** Current local minute as yyyy-mm-ddTHH:mm for <input type="datetime-local">. */
+export function nowInputMinute() {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
 /**

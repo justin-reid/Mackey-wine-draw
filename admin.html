@@ -134,23 +134,27 @@
                     <button type="button" class="quick-pick-btn" data-quick-pick="1">1</button>
                     <button type="button" class="quick-pick-btn" data-quick-pick="2">2</button>
                     <button type="button" class="quick-pick-btn" data-quick-pick="3">3</button>
-                    <button type="button" class="quick-pick-btn" data-quick-pick="4">4</button>
                     <button type="button" class="quick-pick-btn" data-quick-pick="5">5</button>
                     <button type="button" class="quick-pick-btn" data-quick-pick="10">10</button>
+                    <button type="button" class="quick-pick-btn" data-quick-pick="20">20</button>
                   </div>
                   <p class="field-help" id="draw-max-hint"></p>
                 </div>
 
                 <div class="field-group">
                   <label for="draw-date-input" class="field-label">
-                    Elimination Date <span style="font-weight: 400; color: var(--ink-muted);">(marked on the Sheet for everyone drawn)</span>
+                    Draw Timestamp <span style="font-weight: 400; color: var(--ink-muted);">(each timestamp is its own round on the Sheet)</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.45rem; font-size: 0.94rem; cursor: pointer;">
+                    <input type="checkbox" id="draw-auto-time" checked />
+                    <span>Use current date &amp; time when drawing</span>
                   </label>
                   <input
-                    type="date"
+                    type="datetime-local"
                     id="draw-date-input"
                     class="text-input"
-                    maxlength="40"
-                    placeholder="e.g. Dec 14 or Day 3"
+                    step="60"
+                    disabled
                   />
                 </div>
 

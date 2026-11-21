@@ -3,7 +3,8 @@
 A team-based Christmas wine draw elimination board powered by a Google Sheet backend (Google Apps Script) and a static frontend hosted on GitHub Pages.
 
 - **Public Board (`index.html`)** — Live team standings, remaining/eliminated counts, search and status filters, most recent draw spotlight, full draw history, and winner banner.
-- **Drawmaster Console (`admin.html`)** — Passcode-protected admin page to draw random names for a chosen date, copy or print the round's eliminated list, and undo the most recent draw date.
+- **Projector Board (`projector.html`)** — Full-screen 16:9 display showing all teams on one screen with auto-refresh and an Active Only filter.
+- **Drawmaster Console (`admin.html`)** — Passcode-protected admin page to draw random names with automatic timestamps, copy or print the round's eliminated list, and undo the most recent draw round.
 - **Built-in Demo Mode** — Works out of the box with sample teams stored in `localStorage` whenever `API_URL` in `config.js` is blank.
 
 ---
@@ -17,9 +18,9 @@ Use a single tab (the first tab in your spreadsheet) with row 1 as headers and p
 | **A** | `Ticket Number` | Ticket or entry number |
 | **B** | `Player Name` | Player's display name |
 | **C** | `Team` | Team name |
-| **D** | `Eliminated Date` | Leave blank while still in; filled with `yyyy-mm-dd` when drawn |
+| **D** | `Eliminated Date` | Leave blank while still in; filled with a timestamp (`yyyy-mm-dd HH:mm:ss` or `yyyy-mm-dd`) when drawn |
 
-Names are never deleted or moved to another tab. Each distinct elimination date counts as one round (`Day 1`, `Day 2`, ...).
+Names are never deleted or moved to another tab. Each distinct timestamp counts as one round (`Round 1`, `Round 2`, ...), so nightly draws and 30-minute party-day draws stay separated.
 
 ---
 

@@ -9,14 +9,15 @@ function pad(n) {
   return String(n).padStart(2, "0");
 }
 
-function localIsoDaysAgo(days) {
+function localIsoDaysAgo(days, time = "") {
   const d = new Date();
   d.setDate(d.getDate() - days);
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const datePart = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  return time ? `${datePart} ${time}` : datePart;
 }
 
 export function createInitialDemoPlayers() {
-  const dateForDay = { 1: localIsoDaysAgo(2), 2: localIsoDaysAgo(1) };
+  const dateForDay = { 1: localIsoDaysAgo(2, "19:00"), 2: localIsoDaysAgo(1, "19:00") };
 
   const rows = [
     // Bordeaux Bells: all 4 in
@@ -82,7 +83,11 @@ export function createInitialDemoPlayers() {
  * Activated via ?roster=37 on any page.
  */
 export function createLargeDemoPlayers() {
-  const dateForDay = { 1: localIsoDaysAgo(3), 2: localIsoDaysAgo(2), 3: localIsoDaysAgo(1) };
+  const dateForDay = {
+    1: localIsoDaysAgo(2, "19:00"),
+    2: localIsoDaysAgo(1, "19:00"),
+    3: localIsoDaysAgo(1, "19:30"),
+  };
   const teams = [
     "Bordeaux Bells", "Cabernet Carolers", "Mistletoe Merlots", "Fireside Pinot", "Snowfall Sauvignon",
     "Holly & Shiraz", "Champagne Sleigh", "Cellar Noel", "Rioja Reindeer", "Merlot Mistletoe",

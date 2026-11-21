@@ -152,7 +152,7 @@ function renderGrid(board) {
             ? `<span class="proj-dot proj-dot--out" aria-hidden="true"></span>`
             : `<span class="proj-dot proj-dot--in" aria-hidden="true"></span>`;
           const tag = p.eliminated
-            ? `<span class="proj-day">Day ${p.drawRound}</span>`
+            ? `<span class="proj-day">Rd ${p.drawRound}</span>`
             : isWinnerPlayer
               ? `<span class="proj-day proj-day--winner">Winner</span>`
               : "";

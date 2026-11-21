@@ -5,11 +5,12 @@
  *   A  Ticket Number
  *   B  Player Name
  *   C  Team
- *   D  Eliminated Date   (blank = still in; a date = eliminated that day)
+ *   D  Eliminated Date   (blank = still in; date or timestamp = eliminated in that round)
  *
- * Names are never deleted or moved. A draw writes a date into column D for the
- * chosen players. Each distinct date is one round ("Day 1", "Day 2", ...).
- * Undo clears column D for every name marked with the most recent date.
+ * Names are never deleted or moved. A draw writes a timestamp (yyyy-MM-dd HH:mm[:ss])
+ * into column D for the chosen players. Each distinct timestamp is one round
+ * ("Round 1", "Round 2", ...), so multiple draws on party day stay separate.
+ * Undo clears column D for every name marked with the most recent timestamp.
  *
  * Set the admin passcode under Project Settings > Script Properties > ADMIN_PASSCODE.
  */
@@ -21,7 +22,8 @@ const COL_NAME = 2;
 const COL_TEAM = 3;
 const COL_ELIMINATED = 4;
 const HEADERS = ['Ticket Number', 'Player Name', 'Team', 'Eliminated Date'];
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const DATE_ONLY_RE = /^(\d{4}-\d{2}-\d{2})$/;
+const DATETIME_RE = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})(?::(\d{2}))?$/;
 
 /* ==========================================================================
    Web App entry points
@@ -71,7 +73,8 @@ function drawNames_(passcode, count, dateInput) {
   if (!Number.isInteger(count) || count < 1) {
     throw new Error('Please enter a whole number of at least 1.');
   }
-  const date = normalizeDate_(dateInput) || todayIso_();
+  const stamp = normalizeTimestamp_(dateInput) || nowTimestamp_();
+  const numFormat = stampFormat_(stamp);
 
   return withLock_(function () {
     const before = readPlayers_();
@@ -87,7 +90,7 @@ function drawNames_(passcode, count, dateInput) {
     const chosen = shuffle_(active).slice(0, count);
     const sheet = getSheet_();
     chosen.forEach(function (p) {
-      sheet.getRange(p.row, COL_ELIMINATED).setNumberFormat('yyyy-mm-dd').setValue(date);
+      sheet.getRange(p.row, COL_ELIMINATED).setNumberFormat(numFormat).setValue(stamp);
     });
     SpreadsheetApp.flush();
 
@@ -99,9 +102,9 @@ function drawNames_(passcode, count, dateInput) {
 
     return {
       ok: true,
-      round: roundNumberFor_(after, date),
-      label: date,
-      eliminatedAt: date,
+      round: roundNumberFor_(after, stamp),
+      label: stamp,
+      eliminatedAt: stamp,
       eliminated: chosen.map(function (p) { return { name: p.name, team: p.team }; }),
       newlyEliminatedTeams: newlyEliminatedTeams,
       players: publicPlayers_(after),
@@ -248,18 +251,26 @@ function tz_() {
   return getSpreadsheet_().getSpreadsheetTimeZone();
 }
 
-function todayIso_() {
-  return Utilities.formatDate(new Date(), tz_(), 'yyyy-MM-dd');
+function nowTimestamp_() {
+  return Utilities.formatDate(new Date(), tz_(), 'yyyy-MM-dd HH:mm:ss');
 }
 
-// Accepts blank (use today) or yyyy-mm-dd.
-function normalizeDate_(value) {
+// Accepts blank (use current timestamp), yyyy-mm-dd, or yyyy-mm-dd[T ]HH:mm[:ss].
+function normalizeTimestamp_(value) {
   const s = String(value || '').trim();
   if (!s) return '';
-  if (!DATE_RE.test(s)) {
-    throw new Error('Date must look like 2026-12-14.');
+  if (DATE_ONLY_RE.test(s)) return s;
+  const m = DATETIME_RE.exec(s);
+  if (m) {
+    return m[3] ? (m[1] + ' ' + m[2] + ':' + m[3]) : (m[1] + ' ' + m[2]);
   }
-  return s;
+  throw new Error('Timestamp must look like 2026-11-28 19:30 or 2026-11-28.');
+}
+
+function stampFormat_(stamp) {
+  if (stamp.length === 10) return 'yyyy-mm-dd';
+  if (stamp.length === 16) return 'yyyy-mm-dd hh:mm';
+  return 'yyyy-mm-dd hh:mm:ss';
 }
 
 function shuffle_(arr) {
@@ -277,11 +288,21 @@ function text_(v) {
   return v === null || v === undefined ? '' : String(v).trim();
 }
 
-// Sheets turns yyyy-mm-dd into a Date when it is written, so convert it back to text.
+// Sheets turns date/time strings into Date objects, so convert back cleanly.
 function dateText_(v) {
   if (v === null || v === undefined || v === '') return '';
-  if (v instanceof Date) return Utilities.formatDate(v, tz_(), 'yyyy-MM-dd');
-  return String(v).trim();
+  if (v instanceof Date) {
+    const full = Utilities.formatDate(v, tz_(), 'yyyy-MM-dd HH:mm:ss');
+    if (full.slice(11) === '00:00:00') return full.slice(0, 10);
+    if (full.slice(17) === '00') return full.slice(0, 16);
+    return full;
+  }
+  const s = String(v).trim();
+  const m = DATETIME_RE.exec(s);
+  if (m) {
+    return m[3] ? (m[1] + ' ' + m[2] + ':' + m[3]) : (m[1] + ' ' + m[2]);
+  }
+  return s;
 }
 
 function errorMessage_(err) {

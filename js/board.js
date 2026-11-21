@@ -268,7 +268,7 @@ function renderTeams(board) {
           if (isWinnerPlayer) {
             tagHtml = `<span class="player-tag player-tag--winner">Winner!</span>`;
           } else if (player.eliminated) {
-            const detailText = player.drawRound ? `Out &middot; Day ${player.drawRound}` : "Out";
+            const detailText = player.drawRound ? `Out &middot; Rd ${player.drawRound}` : "Out";
             const when = player.eliminatedAt ? ` title="Eliminated ${escapeHtml(formatDateTime(player.eliminatedAt))}"` : "";
             tagHtml = `<span class="player-tag player-tag--eliminated"${when}>${detailText}</span>`;
           } else {
@@ -369,8 +369,8 @@ function openHistoryModal() {
         return `
           <div class="history-round">
             <div class="history-round-head">
-              <h3 class="history-round-title">${heading} (${r.players.length})</h3>
-              <span class="history-round-date">${r.eliminatedAt ? escapeHtml(formatDateTime(r.eliminatedAt)) : ""}</span>
+              <h3 class="history-round-title">${heading}</h3>
+              <span class="history-round-date">${r.players.length} ${r.players.length === 1 ? "name" : "names"}</span>
             </div>
             <ol class="history-list">${items}</ol>
           </div>

@@ -94,7 +94,14 @@ function makeEnv({ passcode = "letmein", players = [] }) {
         };
       },
     },
-    Utilities: { formatDate: (d) => d.toISOString().slice(0, 10) },
+    Utilities: {
+      formatDate: (d, _tz, fmt) => {
+        const iso = d.toISOString();
+        if (fmt === "yyyy-MM-dd HH:mm:ss") return iso.slice(0, 19).replace("T", " ");
+        if (fmt === "yyyy-MM-dd HH:mm") return iso.slice(0, 16).replace("T", " ");
+        return iso.slice(0, 10);
+      },
+    },
     Session: { getScriptTimeZone: () => "UTC" },
   };
   vm.createContext(sandbox);
@@ -159,17 +166,33 @@ test("draws on the same date share a round; a new date starts the next round", (
   assert.strictEqual(api.drawNames_("letmein", 1, "2026-12-14").round, 2);
 });
 
-test("a draw with no date uses today", () => {
+test("a draw with no date uses the current timestamp", () => {
   const { api, sheet } = makeEnv({ players: roster() });
   const today = new Date().toISOString().slice(0, 10);
   const res = api.drawNames_("letmein", 1, "");
-  assert.strictEqual(res.label, today);
-  assert.strictEqual(sheet.rows.find((r) => r[1] === res.eliminated[0].name)[3], today);
+  assert.ok(res.label.startsWith(today + " "), "label starts with today: " + res.label);
+  assert.match(res.label, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+  assert.strictEqual(sheet.rows.find((r) => r[1] === res.eliminated[0].name)[3], res.label);
+});
+
+test("draws on the same day at different times become separate rounds and undo removes only the latest batch", () => {
+  const { api, sheet } = makeEnv({ players: roster() });
+  const r1 = api.drawNames_("letmein", 2, "2026-11-28 19:00");
+  const r2 = api.drawNames_("letmein", 2, "2026-11-28 19:30");
+  assert.strictEqual(r1.round, 1);
+  assert.strictEqual(r2.round, 2);
+  assert.strictEqual(eliminatedCount(sheet), 4);
+
+  const undo = api.undoLastDraw_("letmein");
+  assert.strictEqual(undo.undoneRound, 2);
+  assert.strictEqual(undo.undoneDate, "2026-11-28 19:30");
+  assert.strictEqual(undo.restored.length, 2);
+  assert.strictEqual(eliminatedCount(sheet), 2, "7:00 PM batch remains eliminated");
 });
 
 test("a bad date is rejected and nothing is written", () => {
   const { api, sheet } = makeEnv({ players: roster() });
-  assert.throws(() => api.drawNames_("letmein", 1, "14/12/2026"), /look like 2026-12-14/);
+  assert.throws(() => api.drawNames_("letmein", 1, "14/12/2026"), /look like 2026-11-28/);
   assert.strictEqual(eliminatedCount(sheet), 0);
 });
 
@@ -274,16 +297,18 @@ test("rows keep their sheet order", () => {
   );
 });
 
-test("dates Sheets converts to Date objects are read back as yyyy-mm-dd", () => {
+test("dates and timestamps Sheets converts to Date objects are read back cleanly", () => {
   const { api } = makeEnv({
     players: [
       [101, "Ann", "Reds", new Date("2026-12-14T00:00:00Z")],
-      [102, "Ben", "Blues", ""],
+      [102, "Ben", "Blues", new Date("2026-11-28T19:30:00Z")],
+      [103, "Cy", "Greens", ""],
     ],
   });
   const players = api.publicPlayers_(api.readPlayers_());
   assert.strictEqual(players[0].eliminatedDate, "2026-12-14");
-  assert.strictEqual(players[1].eliminatedDate, "");
+  assert.strictEqual(players[1].eliminatedDate, "2026-11-28 19:30");
+  assert.strictEqual(players[2].eliminatedDate, "");
 });
 
 test("names are never removed from the sheet, even after a full draw", () => {

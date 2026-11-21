@@ -9,12 +9,13 @@
  */
 
 import { createInitialDemoPlayers, createLargeDemoPlayers } from "./demo-data.js";
-import { shortDayLabel, todayIsoDate } from "./ui-helpers.js";
+import { nowTimestamp, shortDayLabel } from "./ui-helpers.js";
 
 const DEMO_STORAGE_KEY = "mackey_wine_draw_demo_v2";
 const DEMO_LARGE_STORAGE_KEY = "mackey_wine_draw_demo_37_v2";
 const OVERRIDE_URL_KEY = "mackey_wine_draw_api_override";
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const DATE_ONLY_RE = /^(\d{4}-\d{2}-\d{2})$/;
+const DATETIME_RE = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})(?::(\d{2}))?$/;
 
 export function getConfig() {
   return Object.assign(
@@ -61,14 +62,24 @@ export function isDemoMode() {
 function normalizeDateString(value) {
   if (value === null || value === undefined) return "";
   const s = String(value).trim();
-  return s ? s.slice(0, 10) : "";
+  if (!s) return "";
+  const dt = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})(?::(\d{2}))?/.exec(s);
+  if (dt) {
+    return dt[3] && dt[3] !== "00" ? `${dt[1]} ${dt[2]}:${dt[3]}` : `${dt[1]} ${dt[2]}`;
+  }
+  const d = /^(\d{4}-\d{2}-\d{2})/.exec(s);
+  return d ? d[1] : s;
 }
 
-function validDateOrBlank(value) {
+function validTimestampOrBlank(value) {
   const s = String(value || "").trim();
   if (!s) return "";
-  if (!DATE_RE.test(s)) throw new Error("Please pick a valid date.");
-  return s;
+  if (DATE_ONLY_RE.test(s)) return s;
+  const m = DATETIME_RE.exec(s);
+  if (m) {
+    return m[3] ? `${m[1]} ${m[2]}:${m[3]}` : `${m[1]} ${m[2]}`;
+  }
+  throw new Error("Please pick a valid date and time.");
 }
 
 /**
@@ -305,14 +316,14 @@ export async function verifyAdminPasscode(passcode) {
 }
 
 /**
- * Marks `count` random players still in as eliminated on `date` (yyyy-mm-dd, default today).
+ * Marks `count` random players still in as eliminated at `date` (timestamp or yyyy-mm-dd, default now).
  */
 export async function drawEliminations({ passcode, count, date }) {
   const num = Number(count);
   if (!Number.isInteger(num) || num < 1) {
     throw new Error("Please enter a whole number of at least 1.");
   }
-  const day = validDateOrBlank(date) || todayIsoDate();
+  const stamp = validTimestampOrBlank(date) || nowTimestamp();
 
   if (isDemoMode()) {
     const players = loadDemoPlayers();
@@ -332,20 +343,20 @@ export async function drawEliminations({ passcode, count, date }) {
 
     const chosen = shuffleArray(active).slice(0, num);
     const chosenIds = new Set(chosen.map((p) => p.id));
-    const updated = players.map((p) => (chosenIds.has(p.id) ? { ...p, eliminatedDate: day } : p));
+    const updated = players.map((p) => (chosenIds.has(p.id) ? { ...p, eliminatedDate: stamp } : p));
     saveDemoPlayers(updated);
 
     const afterBoard = buildBoardFromPlayers(updated);
     const newlyEliminatedTeams = afterBoard.teams
       .filter((t) => t.isEliminated && !outBefore.has(t.name))
       .map((t) => t.name);
-    const round = afterBoard.players.find((p) => p.eliminatedDate === day).drawRound;
+    const round = afterBoard.players.find((p) => p.eliminatedDate === stamp).drawRound;
 
     return {
       ok: true,
       round,
-      label: shortDayLabel(day),
-      eliminatedAt: day,
+      label: shortDayLabel(stamp),
+      eliminatedAt: stamp,
       eliminated: chosen.map((p) => ({ name: p.name, team: p.team })),
       newlyEliminatedTeams,
       board: afterBoard,
@@ -356,12 +367,12 @@ export async function drawEliminations({ passcode, count, date }) {
     action: "draw",
     passcode: String(passcode || ""),
     count: num,
-    date: day,
+    date: stamp,
   });
 
   return {
     ...res,
-    label: shortDayLabel(res.label || day),
+    label: shortDayLabel(res.label || stamp),
     board: buildBoardFromPlayers(res.players, res.updatedAt),
   };
 }

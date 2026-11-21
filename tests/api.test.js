@@ -47,6 +47,22 @@ global.localStorage = {
     assert.strictEqual(board.rounds[1].round, 1);
   });
 
+  await test("buildBoardFromPlayers splits same-day timestamps into separate rounds in chronological order", () => {
+    const board = api.buildBoardFromPlayers([
+      { ticket: 1, name: "Ann", team: "Reds", eliminatedDate: "2026-11-28 19:30" },
+      { ticket: 2, name: "Ben", team: "Reds", eliminatedDate: "" },
+      { ticket: 3, name: "Cy", team: "Blues", eliminatedDate: "2026-11-28 19:00" },
+      { ticket: 4, name: "Dee", team: "Greens", eliminatedDate: "2026-11-22" },
+    ]);
+    assert.strictEqual(board.summary.currentRound, 3);
+    assert.strictEqual(board.rounds[0].round, 3);
+    assert.strictEqual(board.rounds[0].eliminatedAt, "2026-11-28 19:30");
+    assert.strictEqual(board.rounds[1].round, 2);
+    assert.strictEqual(board.rounds[1].eliminatedAt, "2026-11-28 19:00");
+    assert.strictEqual(board.rounds[2].round, 1);
+    assert.strictEqual(board.rounds[2].eliminatedAt, "2026-11-22");
+  });
+
   await test("verifyAdminPasscode accepts configured demoPasscode and rejects wrong passcode", async () => {
     await api.verifyAdminPasscode("mackey");
     await assert.rejects(() => api.verifyAdminPasscode("wrong"), /Incorrect demo passcode/);
@@ -64,6 +80,19 @@ global.localStorage = {
     assert.strictEqual(undo.undoneDate, "2026-12-20");
     assert.strictEqual(undo.restored.length, 3);
     assert.strictEqual(undo.board.summary.activePlayers, startActive);
+  });
+
+  await test("drawEliminations with auto timestamps separates back-to-back draws on the same day", async () => {
+    const initial = api.resetDemoData();
+    const startRounds = initial.summary.currentRound;
+    const d1 = await api.drawEliminations({ passcode: "mackey", count: 2, date: "2026-11-28T19:00" });
+    const d2 = await api.drawEliminations({ passcode: "mackey", count: 2, date: "2026-11-28T19:30" });
+    assert.strictEqual(d1.round, startRounds + 1);
+    assert.strictEqual(d2.round, startRounds + 2);
+
+    const undo = await api.undoLastDraw({ passcode: "mackey" });
+    assert.strictEqual(undo.undoneDate, "2026-11-28 19:30");
+    assert.strictEqual(undo.board.summary.currentRound, startRounds + 1);
   });
 
   await test("drawEliminations blocks drawing down to zero players", async () => {

@@ -16,7 +16,8 @@ import {
 import {
   escapeHtml,
   shortDayLabel,
-  todayIsoDate,
+  nowTimestamp,
+  nowInputMinute,
   formatDateTime,
   formatEliminationAnnouncement,
   ICONS,
@@ -64,6 +65,7 @@ function cacheElements() {
   els.drawDecrementBtn = document.getElementById("draw-decrement");
   els.drawIncrementBtn = document.getElementById("draw-increment");
   els.drawMaxHint = document.getElementById("draw-max-hint");
+  els.drawAutoTime = document.getElementById("draw-auto-time");
   els.drawDateInput = document.getElementById("draw-date-input");
   els.drawSubmitBtn = document.getElementById("draw-submit-btn");
   els.quickPickBtns = Array.from(document.querySelectorAll("[data-quick-pick]"));
@@ -328,7 +330,7 @@ function renderHistorySidebar() {
         <div class="history-round">
           <div class="history-round-head">
             <h3 class="history-round-title">${heading}</h3>
-            <span class="history-round-date">${r.eliminatedAt ? escapeHtml(formatDateTime(r.eliminatedAt)) : ""}</span>
+            <span class="history-round-date">${r.players.length} ${r.players.length === 1 ? "name" : "names"}</span>
           </div>
           <ol class="history-list" style="margin-bottom: 0.7rem;">${listItems}</ol>
           <div class="result-actions">
@@ -553,6 +555,9 @@ async function executeDraw(count, date) {
     });
     state.board = res.board;
     state.lastDrawResult = res;
+    if (els.drawAutoTime?.checked && els.drawDateInput) {
+      els.drawDateInput.value = nowInputMinute();
+    }
     renderAdminWorkspace();
     showAlert(
       `Round ${res.round} complete — ${res.eliminated.length} ${
@@ -636,6 +641,14 @@ function bindEvents() {
     });
   });
 
+  els.drawAutoTime?.addEventListener("change", () => {
+    const auto = els.drawAutoTime.checked;
+    els.drawDateInput.disabled = auto;
+    if (auto || !els.drawDateInput.value) {
+      els.drawDateInput.value = nowInputMinute();
+    }
+  });
+
   // Draw submission with confirmation
   els.drawForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -648,7 +661,8 @@ function bindEvents() {
       return;
     }
 
-    const date = els.drawDateInput.value || todayIsoDate();
+    const useAuto = Boolean(els.drawAutoTime?.checked);
+    const stamp = useAuto ? nowTimestamp() : (els.drawDateInput.value || nowTimestamp());
     const nextRound = (state.board?.summary?.currentRound || 0) + 1;
     const willCrownWinner = state.board.summary.activePlayers - count === 1;
 
@@ -657,7 +671,7 @@ function bindEvents() {
       bodyHtml: `
         <p>You are about to randomly eliminate <strong>${count} ${
           count === 1 ? "player" : "players"
-        }</strong> for <strong>Round ${nextRound} (${escapeHtml(shortDayLabel(date))})</strong>.</p>
+        }</strong> for <strong>Round ${nextRound} (${escapeHtml(shortDayLabel(stamp))})</strong>.</p>
         ${
           willCrownWinner
             ? `<p style="color: var(--claret-deep); font-weight: 600;">This draw will leave 1 final player standing — crowning the winner of the wine!</p>`
@@ -667,7 +681,7 @@ function bindEvents() {
         }
       `,
       confirmLabel: `Draw ${count} ${count === 1 ? "Name" : "Names"}`,
-      onConfirm: () => executeDraw(count, date),
+      onConfirm: () => executeDraw(count, useAuto ? nowTimestamp() : stamp),
     });
   });
 
@@ -742,7 +756,10 @@ function init() {
   applyBranding();
   bindEvents();
 
-  els.drawDateInput.value = todayIsoDate();
+  els.drawDateInput.value = nowInputMinute();
+  if (els.drawAutoTime) {
+    els.drawDateInput.disabled = els.drawAutoTime.checked;
+  }
 
   // Restore session passcode if present in this tab
   let saved = "";
