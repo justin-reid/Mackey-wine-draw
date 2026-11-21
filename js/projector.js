@@ -35,21 +35,16 @@ function applyBranding() {
   if (els.demoPill) els.demoPill.hidden = !isDemoMode();
 }
 
-function chooseColumnCount(teamCount) {
-  if (teamCount <= 2) return 2;
-  if (teamCount <= 6) return 3;
-  if (teamCount <= 12) return 4;
-  if (teamCount <= 20) return 5;
-  return 6;
+// Pick a grid shape close to a 16:9 screen: columns ~ sqrt(teams x 1.6), then fill rows.
+// 8 teams -> 4x2, 20 teams -> 6x4, 37 teams -> 8x5.
+function chooseLayout(teamCount) {
+  const cols = Math.max(1, Math.ceil(Math.sqrt(teamCount * 1.6)));
+  const rows = Math.max(1, Math.ceil(teamCount / cols));
+  return { cols, rows };
 }
 
 function renderTallies(board) {
   const s = board.summary;
-  const latest = board.rounds[0];
-  const roundText = latest
-    ? `Round ${latest.round} &middot; ${escapeHtml(latest.label || "")}`
-    : "Ready";
-
   els.tallies.innerHTML = `
     <div class="proj-tally proj-tally--pine">
       <span class="proj-tally-num">${s.activePlayers}<small>/${s.totalPlayers}</small></span>
@@ -62,10 +57,6 @@ function renderTallies(board) {
     <div class="proj-tally proj-tally--claret">
       <span class="proj-tally-num">${s.eliminatedPlayers}</span>
       <span class="proj-tally-label">Out</span>
-    </div>
-    <div class="proj-tally">
-      <span class="proj-tally-round">${roundText}</span>
-      <span class="proj-tally-label">Latest Draw</span>
     </div>
   `;
 }
@@ -124,8 +115,7 @@ function renderGrid(board) {
     return;
   }
 
-  const cols = chooseColumnCount(teams.length);
-  const rows = Math.ceil(teams.length / cols);
+  const { cols, rows } = chooseLayout(teams.length);
   els.grid.style.setProperty("--proj-cols", String(cols));
   els.grid.style.setProperty("--proj-rows", String(rows));
 
@@ -172,11 +162,11 @@ function renderGrid(board) {
 
       return `
         <article class="${cardClass}">
-          <div class="proj-team-head">
-            <h2 class="proj-team-name">${escapeHtml(team.name)}</h2>
+          <h2 class="proj-team-name">${escapeHtml(team.name)}</h2>
+          <div class="proj-progress-row">
+            <div class="proj-progress"><div class="proj-progress-fill" style="width:${pct}%"></div></div>
             ${badge}
           </div>
-          <div class="proj-progress"><div class="proj-progress-fill" style="width:${pct}%"></div></div>
           <ul class="proj-players">${playersHtml}</ul>
         </article>
       `;

@@ -1548,10 +1548,12 @@ select {
 
 /* ==========================================================================
    Full-Screen Projector View (projector.html)
+   Sized in vh so the whole board scales with the screen height. The grid
+   is always rows x columns with no scrolling on a 16:9 screen.
    ========================================================================== */
 .projector-body {
   height: 100vh;
-  min-height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1560,11 +1562,10 @@ select {
 
 .proj-header {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem 0.9rem;
-  padding: 0.55rem 1.15rem;
+  gap: 1vw;
+  padding: 0.9vh 1.2vw;
   background: linear-gradient(160deg, #4b101c 0%, #681828 55%, #3a0d16 100%);
   color: #fbf6ed;
   border-bottom: 3px solid var(--gold-bright);
@@ -1574,20 +1575,20 @@ select {
 .proj-brand {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  flex: 0 0 auto;
+  gap: 0.8vw;
+  min-width: 0;
 }
 
 .proj-ornament svg {
-  width: 26px;
-  height: 26px;
+  width: 3vh;
+  height: 3vh;
   display: block;
 }
 
 .proj-title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(1.2rem, 1.75vw, 1.85rem);
+  font-size: 4vh;
   font-weight: 700;
   line-height: 1.05;
   white-space: nowrap;
@@ -1596,61 +1597,60 @@ select {
 .proj-sub {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  font-size: 0.78rem;
+  gap: 0.6vw;
+  font-size: 1.6vh;
   color: rgba(251, 246, 237, 0.82);
-  margin-top: 0.1rem;
+  margin-top: 0.3vh;
 }
 
 .proj-tallies {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.6vw;
   flex-wrap: wrap;
-  flex: 0 0 auto;
 }
 
 .proj-tally {
   background: rgba(255, 253, 249, 0.12);
   border: 1px solid rgba(207, 162, 90, 0.42);
   border-radius: var(--radius-sm);
-  padding: 0.22rem 0.58rem;
+  padding: 0.5vh 0.8vw;
   display: flex;
   align-items: baseline;
-  gap: 0.35rem;
+  gap: 0.5vw;
   white-space: nowrap;
 }
 
 .proj-tally-num {
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: 3.4vh;
   font-weight: 700;
   line-height: 1;
   color: #ffffff;
 }
 
 .proj-tally-num small {
-  font-size: 0.84rem;
+  font-size: 2vh;
   opacity: 0.78;
 }
 
 .proj-tally-round {
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: 2vh;
   color: #f3d79d;
 }
 
 .proj-tally-label {
-  font-size: 0.7rem;
+  font-size: 1.5vh;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   color: rgba(251, 246, 237, 0.82);
 }
 
 .proj-controls {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5vw;
   flex-shrink: 0;
 }
 
@@ -1658,12 +1658,12 @@ select {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.36rem 0.75rem;
+  padding: 0.7vh 1vw;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.3);
   background: rgba(255, 255, 255, 0.1);
   color: #fbf6ed;
-  font-size: 0.84rem;
+  font-size: 1.7vh;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
@@ -1686,53 +1686,63 @@ select {
   color: #241315;
 }
 
+/* One line: the latest-draw names never push the grid down. */
 .proj-spotlight {
   display: flex;
   align-items: center;
-  gap: 0.65rem 1rem;
-  flex-wrap: wrap;
-  padding: 0.45rem 1.25rem;
+  gap: 0.6vw;
+  height: 5vh;
+  padding: 0 1.2vw;
   background: var(--bg-card);
   border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.proj-spotlight[hidden] {
+  display: none;
 }
 
 .proj-spotlight--winner {
+  height: 6vh;
   background: linear-gradient(90deg, #faf1df 0%, #fffdf8 50%, #faf1df 100%);
   border-bottom: 2px solid var(--gold-bright);
   justify-content: center;
-  padding: 0.55rem 1.25rem;
 }
 
 .proj-spot-label {
+  flex-shrink: 0;
   font-weight: 700;
-  font-size: 0.86rem;
+  font-size: 1.6vh;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--claret);
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4vw;
 }
 
 .proj-spot-winner {
   font-family: var(--font-display);
-  font-size: 1.4rem;
+  font-size: 3vh;
   color: var(--ink-primary);
 }
 
 .proj-spot-chips {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.4vw;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .proj-chip {
+  flex-shrink: 0;
   background: var(--claret-soft);
   border: 1px solid var(--claret-border);
   border-radius: 999px;
-  padding: 0.12rem 0.58rem;
-  font-size: 0.84rem;
+  padding: 0.2vh 0.6vw;
+  font-size: 1.7vh;
   font-weight: 600;
   color: var(--claret-deep);
 }
@@ -1745,12 +1755,12 @@ select {
 .proj-grid {
   flex: 1 1 auto;
   min-height: 0;
-  padding: 0.85rem 1.15rem;
+  padding: 1.2vh 1.2vw;
   display: grid;
   grid-template-columns: repeat(var(--proj-cols, 4), minmax(0, 1fr));
-  grid-auto-rows: minmax(0, 1fr);
-  gap: 0.75rem;
-  overflow-y: auto;
+  grid-template-rows: repeat(var(--proj-rows, 2), minmax(0, 1fr));
+  gap: 0.9vh 0.6vw;
+  overflow: auto;
 }
 
 .proj-team {
@@ -1758,10 +1768,11 @@ select {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
-  padding: 0.65rem 0.8rem;
+  padding: 0.6vh 0.6vw;
   display: flex;
   flex-direction: column;
   min-height: 0;
+  overflow: hidden;
 }
 
 .proj-team--out {
@@ -1774,18 +1785,20 @@ select {
   background: linear-gradient(180deg, #fffdf6 0%, #faf1df 100%);
 }
 
-.proj-team-head {
+.proj-progress-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.45rem;
-  margin-bottom: 0.35rem;
+  gap: 0.5vw;
+  margin-bottom: 0.2vh;
+  flex-shrink: 0;
+  min-width: 0;
 }
 
 .proj-team-name {
-  margin: 0;
+  margin: 0 0 0.2vh;
+  min-width: 0;
   font-family: var(--font-display);
-  font-size: clamp(1.1rem, 1.45vw, 1.45rem);
+  font-size: 2vh;
   font-weight: 700;
   line-height: 1.1;
   color: var(--ink-primary);
@@ -1802,9 +1815,10 @@ select {
 
 .proj-badge {
   flex-shrink: 0;
-  font-size: 0.78rem;
+  font-size: 1.5vh;
   font-weight: 700;
-  padding: 0.12rem 0.5rem;
+  line-height: 1.3;
+  padding: 0 0.5vw;
   border-radius: 999px;
   letter-spacing: 0.03em;
 }
@@ -1819,23 +1833,23 @@ select {
   background: var(--claret);
   color: #ffffff;
   text-transform: uppercase;
-  font-size: 0.72rem;
+  font-size: 1.3vh;
 }
 
 .proj-badge--winner {
   background: var(--gold-bright);
   color: #241315;
   text-transform: uppercase;
-  font-size: 0.72rem;
+  font-size: 1.3vh;
 }
 
 .proj-progress {
-  height: 4px;
+  height: 0.5vh;
   border-radius: 999px;
   background: #e6ddd0;
   overflow: hidden;
-  margin-bottom: 0.45rem;
-  flex-shrink: 0;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .proj-progress-fill {
@@ -1851,15 +1865,16 @@ select {
   flex-direction: column;
   justify-content: space-evenly;
   flex: 1 1 auto;
-  gap: 0.22rem;
+  min-height: 0;
 }
 
 .proj-player {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  font-size: clamp(0.88rem, 1.05vw, 1.06rem);
-  line-height: 1.25;
+  gap: 0.5vw;
+  font-size: 1.12vh;
+  line-height: 1.2;
+  min-width: 0;
 }
 
 .proj-player-name {
@@ -1869,6 +1884,7 @@ select {
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1 1 auto;
+  min-width: 0;
 }
 
 .proj-player--out .proj-player-name {
@@ -1884,8 +1900,8 @@ select {
 }
 
 .proj-dot {
-  width: 9px;
-  height: 9px;
+  width: 0.8vh;
+  height: 0.8vh;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -1900,13 +1916,14 @@ select {
 
 .proj-day {
   flex-shrink: 0;
-  font-size: 0.74rem;
+  font-size: 1vh;
+  line-height: 1;
   font-weight: 600;
   color: var(--claret-deep);
   background: var(--claret-soft);
   border: 1px solid var(--claret-border);
   border-radius: 999px;
-  padding: 0.05rem 0.42rem;
+  padding: 0 0.4vw;
 }
 
 .proj-day--winner {
@@ -1920,10 +1937,11 @@ select {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 2.4vh;
   color: var(--ink-secondary);
 }
 
+/* Phones and narrow windows: stack normally instead of fitting one screen. */
 @media (max-width: 980px) {
   .projector-body {
     height: auto;
@@ -1932,8 +1950,37 @@ select {
   .proj-header {
     flex-wrap: wrap;
   }
+  .proj-title {
+    font-size: 1.6rem;
+    white-space: normal;
+  }
+  .proj-spotlight {
+    height: auto;
+    flex-wrap: wrap;
+    white-space: normal;
+    padding: 0.6rem 1rem;
+  }
+  .proj-spot-chips {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+  .proj-chip {
+    font-size: 0.9rem;
+  }
   .proj-grid {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-rows: none;
     grid-auto-rows: auto;
+    overflow: visible;
+  }
+  .proj-team-name {
+    font-size: 1.35rem;
+  }
+  .proj-players {
+    justify-content: flex-start;
+  }
+  .proj-player {
+    font-size: 0.98rem;
+    line-height: 1.5;
   }
 }
