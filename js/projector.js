@@ -4,7 +4,7 @@
  */
 
 import { fetchBoard, getConfig, isDemoMode } from "./api.js";
-import { escapeHtml, formatDateTime, ICONS } from "./ui-helpers.js";
+import { escapeHtml, formatDateTime, ICONS, preserveRosterParam } from "./ui-helpers.js";
 
 const state = {
   board: null,
@@ -240,6 +240,7 @@ function bindEvents() {
 }
 
 function init() {
+  preserveRosterParam();
   cacheElements();
   applyBranding();
   bindEvents();

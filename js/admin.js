@@ -20,6 +20,7 @@ import {
   formatDateTime,
   formatEliminationAnnouncement,
   ICONS,
+  preserveRosterParam,
 } from "./ui-helpers.js";
 
 const SESSION_PASSCODE_KEY = "mackey_wine_draw_admin_passcode";
@@ -736,6 +737,7 @@ function bindEvents() {
 }
 
 function init() {
+  preserveRosterParam();
   cacheElements();
   applyBranding();
   bindEvents();

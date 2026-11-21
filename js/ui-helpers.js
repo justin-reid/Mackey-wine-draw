@@ -144,3 +144,14 @@ export const ICONS = {
     <path d="M21 3v6h-6"/>
   </svg>`,
 };
+
+/** Keep ?roster=37 on internal page links so navigating stays in the 37x7 demo. */
+export function preserveRosterParam() {
+  const roster = new URLSearchParams(window.location.search).get("roster");
+  if (!roster) return;
+  document.querySelectorAll("a[href$='.html']").forEach((a) => {
+    const href = a.getAttribute("href");
+    if (!href || href.startsWith("http")) return;
+    a.setAttribute("href", `${href}?roster=${encodeURIComponent(roster)}`);
+  });
+}
