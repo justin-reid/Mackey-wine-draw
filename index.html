@@ -46,6 +46,9 @@
           <button type="button" class="hero-pill-link" id="open-history-nav">
             Draw History
           </button>
+          <button type="button" class="hero-pill-link" id="open-winners-nav">
+            Previous Winners
+          </button>
           <a href="./projector.html" class="hero-pill-link">Projector View</a>
           <button type="button" class="hero-pill-link" id="refresh-btn">
             Refresh Standings
@@ -166,6 +169,31 @@
           </button>
         </div>
         <div id="history-modal-body"></div>
+      </div>
+    </div>
+
+    <!-- Previous Winners Modal -->
+    <div
+      id="winners-modal"
+      class="modal-backdrop no-print"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="winners-modal-title"
+      hidden
+    >
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 class="modal-title" id="winners-modal-title">Previous Winners</h2>
+          <button
+            type="button"
+            id="winners-modal-close"
+            class="modal-close"
+            aria-label="Close previous winners"
+          >
+            &times;
+          </button>
+        </div>
+        <div id="winners-modal-body"></div>
       </div>
     </div>
 

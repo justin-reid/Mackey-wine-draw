@@ -16,6 +16,12 @@ function localIsoDaysAgo(days, time = "") {
   return time ? `${datePart} ${time}` : datePart;
 }
 
+export const DEMO_PREVIOUS_WINNERS = [
+  { year: "2025", winner: "Margaret Mackey", team: "Bordeaux Bells", notes: "37 bottles" },
+  { year: "2024", winner: "Robert Thornton", team: "Mistletoe Merlots", notes: "34 bottles" },
+  { year: "2023", winner: "Patricia Holloway", team: "The Cabernet Carolers", notes: "32 bottles" },
+];
+
 export function createInitialDemoPlayers() {
   const dateForDay = { 1: localIsoDaysAgo(2, "19:00"), 2: localIsoDaysAgo(1, "19:00") };
 

@@ -21,6 +21,9 @@ class MockSheet {
   getLastRow() {
     return this.rows.length;
   }
+  getLastColumn() {
+    return this.rows.reduce((m, r) => Math.max(m, r.length), 0);
+  }
   getRange(row, col, numRows = 1, numCols = 1) {
     const self = this;
     const api = {
@@ -59,11 +62,12 @@ class MockSheet {
   setFrozenRows() {}
 }
 
-function makeEnv({ passcode = "letmein", players = [] }) {
+function makeEnv({ passcode = "letmein", players = [], previousWinners = null }) {
   const sheet = new MockSheet([HEADERS, ...players]);
+  const winnersSheet = previousWinners ? new MockSheet(previousWinners) : null;
   const ss = {
     getSheets: () => [sheet],
-    getSheetByName: () => sheet,
+    getSheetByName: (name) => (name === "PreviousWinners" ? winnersSheet : sheet),
     getSpreadsheetTimeZone: () => "UTC",
   };
   const sandbox = {
@@ -315,6 +319,22 @@ test("names are never removed from the sheet, even after a full draw", () => {
   const { api, sheet } = makeEnv({ players: roster() });
   api.drawNames_("letmein", 5, "2026-12-14");
   assert.deepStrictEqual(sheetNames(sheet), ["Ann", "Ben", "Cy", "Dee", "Eli", "Fay"]);
+});
+
+test("doGet reads PreviousWinners tab when present and returns [] when absent", () => {
+  const { api } = makeEnv({
+    players: roster(),
+    previousWinners: [
+      ["Year", "Winner", "Team", "Notes"],
+      [2024, "Robert Thornton", "Mistletoe Merlots", "34 bottles"],
+      [2025, "Margaret Mackey", "Bordeaux Bells", "37 bottles"],
+    ],
+  });
+  const data = parse(api.doGet({}));
+  assert.strictEqual(data.ok, true);
+  assert.strictEqual(data.previousWinners.length, 2);
+  assert.strictEqual(data.previousWinners[0].year, "2025");
+  assert.strictEqual(data.previousWinners[0].winner, "Margaret Mackey");
 });
 
 console.log(`\n${passed} tests passed`);

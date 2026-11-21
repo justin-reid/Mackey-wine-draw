@@ -34,6 +34,11 @@ function cacheElements() {
   els.historyBody = document.getElementById("history-modal-body");
   els.historyClose = document.getElementById("history-modal-close");
   els.openHistoryNav = document.getElementById("open-history-nav");
+
+  els.winnersModal = document.getElementById("winners-modal");
+  els.winnersBody = document.getElementById("winners-modal-body");
+  els.winnersClose = document.getElementById("winners-modal-close");
+  els.openWinnersNav = document.getElementById("open-winners-nav");
   els.partyModal = document.getElementById("party-modal");
   els.partyClose = document.getElementById("party-modal-close");
   els.openPartyNav = document.getElementById("open-party-nav");
@@ -387,6 +392,41 @@ function closeHistoryModal() {
   els.historyModal.hidden = true;
 }
 
+function openWinnersModal() {
+  if (!state.board || !els.winnersModal) return;
+  const winners = state.board.previousWinners || [];
+
+  if (winners.length === 0) {
+    els.winnersBody.innerHTML = `<p>No previous winners have been recorded yet.</p>`;
+  } else {
+    els.winnersBody.innerHTML = `
+      <ul class="winners-list">
+        ${winners
+          .map(
+            (w) => `
+          <li class="winners-item">
+            <span class="winners-year">${escapeHtml(w.year || "—")}</span>
+            <div class="winners-info">
+              <strong class="winners-name">${escapeHtml(w.winner)}</strong>
+              ${w.team ? `<span class="winners-team">${escapeHtml(w.team)}</span>` : ""}
+            </div>
+            ${w.notes ? `<span class="winners-notes">${escapeHtml(w.notes)}</span>` : ""}
+          </li>
+        `
+          )
+          .join("")}
+      </ul>
+    `;
+  }
+
+  els.winnersModal.hidden = false;
+  els.winnersClose?.focus();
+}
+
+function closeWinnersModal() {
+  if (els.winnersModal) els.winnersModal.hidden = true;
+}
+
 function openPartyModal() {
   if (!els.partyModal) return;
   els.partyModal.hidden = false;
@@ -461,6 +501,11 @@ function bindEvents() {
     openHistoryModal();
   });
 
+  els.openWinnersNav?.addEventListener("click", (e) => {
+    e.preventDefault();
+    openWinnersModal();
+  });
+
   els.refreshBtn?.addEventListener("click", () => loadBoard(false));
 
   els.partyClose?.addEventListener("click", closePartyModal);
@@ -472,9 +517,16 @@ function bindEvents() {
   els.historyModal?.addEventListener("click", (e) => {
     if (e.target === els.historyModal) closeHistoryModal();
   });
+
+  els.winnersClose?.addEventListener("click", closeWinnersModal);
+  els.winnersModal?.addEventListener("click", (e) => {
+    if (e.target === els.winnersModal) closeWinnersModal();
+  });
+
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       if (!els.historyModal.hidden) closeHistoryModal();
+      if (els.winnersModal && !els.winnersModal.hidden) closeWinnersModal();
       if (els.partyModal && !els.partyModal.hidden) closePartyModal();
     }
   });

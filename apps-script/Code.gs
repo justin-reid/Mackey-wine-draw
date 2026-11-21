@@ -17,6 +17,7 @@
 
 const SHEET_ID = '';   // Leave blank when this script is attached to the Sheet (Extensions > Apps Script).
 const SHEET_TAB = '';  // Leave blank to use the first tab.
+const WINNERS_TAB = 'PreviousWinners';
 const COL_TICKET = 1;
 const COL_NAME = 2;
 const COL_TEAM = 3;
@@ -29,12 +30,13 @@ const DATETIME_RE = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})(?::(\d{2}))?$/;
    Web App entry points
    ========================================================================== */
 
-// Public read: full board data for index.html
+// Public read: full board data + previous winners for index.html
 function doGet(e) {
   try {
     return json_({
       ok: true,
       players: publicPlayers_(readPlayers_()),
+      previousWinners: readPreviousWinners_(),
       updatedAt: new Date().toISOString(),
     });
   } catch (err) {
@@ -206,6 +208,46 @@ function roundDates_(players) {
 
 function roundNumberFor_(players, date) {
   return roundDates_(players).indexOf(date) + 1;
+}
+
+// Reads the optional 'PreviousWinners' tab (Year, Winner/Name, Team, Notes).
+function readPreviousWinners_() {
+  const sheet = getSpreadsheet_().getSheetByName(WINNERS_TAB);
+  if (!sheet) return [];
+  const lastRow = sheet.getLastRow();
+  const lastCol = sheet.getLastColumn();
+  if (lastRow < 2 || lastCol < 1) return [];
+
+  const rows = sheet.getRange(1, 1, lastRow, lastCol).getValues();
+  const headers = rows[0].map(function (h) { return text_(h).toLowerCase(); });
+  const findCol = function (names, fallback) {
+    for (let i = 0; i < headers.length; i++) {
+      if (names.indexOf(headers[i]) !== -1) return i;
+    }
+    return fallback < headers.length ? fallback : -1;
+  };
+
+  const colYear = findCol(['year', 'draw year'], 0);
+  const colWinner = findCol(['winner', 'player name', 'name', 'player'], 1);
+  const colTeam = findCol(['team', 'team name'], 2);
+  const colNotes = findCol(['notes', 'prize', 'bottles', 'details'], 3);
+
+  const list = [];
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r];
+    const winner = colWinner >= 0 ? text_(row[colWinner]) : '';
+    const year = colYear >= 0 ? text_(row[colYear]) : '';
+    if (!winner && !year) continue;
+    list.push({
+      year: year,
+      winner: winner,
+      team: colTeam >= 0 ? text_(row[colTeam]) : '',
+      notes: colNotes >= 0 ? text_(row[colNotes]) : '',
+    });
+  }
+  return list.sort(function (a, b) {
+    return String(b.year).localeCompare(String(a.year), undefined, { numeric: true });
+  });
 }
 
 /* ==========================================================================

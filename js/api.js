@@ -8,7 +8,7 @@
  *  - Demo mode (API_URL empty): the same data kept in this browser's localStorage.
  */
 
-import { createInitialDemoPlayers, createLargeDemoPlayers } from "./demo-data.js";
+import { createInitialDemoPlayers, createLargeDemoPlayers, DEMO_PREVIOUS_WINNERS } from "./demo-data.js";
 import { nowTimestamp, shortDayLabel } from "./ui-helpers.js";
 
 const DEMO_STORAGE_KEY = "mackey_wine_draw_demo_v2";
@@ -86,7 +86,11 @@ function validTimestampOrBlank(value) {
  * Turns the flat player list into the board structure used by the pages.
  * Each distinct elimination date is one round ("Day 1", "Day 2", ...).
  */
-export function buildBoardFromPlayers(rawPlayers, updatedAt = new Date().toISOString()) {
+export function buildBoardFromPlayers(
+  rawPlayers,
+  updatedAt = new Date().toISOString(),
+  rawPreviousWinners = []
+) {
   const base = (rawPlayers || [])
     .map((p, idx) => ({
       id: String(p.ticket ?? p.id ?? `row-${idx + 1}`),
@@ -158,11 +162,22 @@ export function buildBoardFromPlayers(rawPlayers, updatedAt = new Date().toISOSt
   const activeTeams = teams.filter((t) => !t.isEliminated).length;
   const winner = totalPlayers >= 2 && activePlayers === 1 ? activePlayersList[0] : null;
 
+  const previousWinners = (rawPreviousWinners || [])
+    .map((w) => ({
+      year: String(w.year || "").trim(),
+      winner: String(w.winner || "").trim(),
+      team: String(w.team || "").trim(),
+      notes: String(w.notes || "").trim(),
+    }))
+    .filter((w) => w.winner || w.year)
+    .sort((a, b) => b.year.localeCompare(a.year, undefined, { numeric: true }));
+
   return {
     updatedAt,
     players,
     teams,
     rounds,
+    previousWinners,
     summary: {
       totalPlayers,
       activePlayers,
@@ -273,7 +288,7 @@ async function postAppsScript(payload) {
 
 export async function fetchBoard() {
   if (isDemoMode()) {
-    return buildBoardFromPlayers(loadDemoPlayers());
+    return buildBoardFromPlayers(loadDemoPlayers(), new Date().toISOString(), DEMO_PREVIOUS_WINNERS);
   }
 
   const url = getEffectiveApiUrl();
@@ -298,7 +313,7 @@ export async function fetchBoard() {
     throw new Error(data.error || "Google Sheet returned an error.");
   }
 
-  return buildBoardFromPlayers(data.players, data.updatedAt);
+  return buildBoardFromPlayers(data.players, data.updatedAt, data.previousWinners);
 }
 
 export async function verifyAdminPasscode(passcode) {
