@@ -1731,9 +1731,27 @@ select {
 
 .proj-spot-chips {
   display: flex;
+  flex: 1 1 0;
   gap: 0.4vw;
   min-width: 0;
-  overflow: hidden;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.proj-spot-chips::-webkit-scrollbar {
+  display: none;
+}
+
+/* People who prefer reduced motion can scroll the names themselves. */
+@media (prefers-reduced-motion: reduce) {
+  .proj-spot-chips {
+    scrollbar-width: thin;
+  }
+  .proj-spot-chips::-webkit-scrollbar {
+    display: block;
+    height: 5px;
+  }
 }
 
 .proj-chip {
@@ -1956,13 +1974,12 @@ select {
   }
   .proj-spotlight {
     height: auto;
-    flex-wrap: wrap;
-    white-space: normal;
+    white-space: nowrap;
     padding: 0.6rem 1rem;
   }
-  .proj-spot-chips {
+  .proj-spotlight--winner {
     flex-wrap: wrap;
-    overflow: visible;
+    white-space: normal;
   }
   .proj-chip {
     font-size: 0.9rem;
